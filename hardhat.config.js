@@ -1,0 +1,1 @@
+// Hardhat config placeholder
