@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ABS Airdrop Claim</title>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; text-align: center; padding: 2rem; }
+    .container { background: white; padding: 2rem; border-radius: 10px; max-width: 500px; margin: auto; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    button { padding: 1rem 2rem; background: #ffae00; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; }
+    button:hover { background: #e09d00; }
+    #status { margin-top: 1rem; color: #333; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Claim Your ABS Airdrop</h2>
+    <p>Make sure you're connected to the BNB Chain Mainnet.</p>
+    <button id="connectWallet">Connect Wallet</button>
+    <br/><br/>
+    <button id="claimAirdrop" disabled>Claim Airdrop</button>
+    <div id="status"></div>
+  </div>  <script>
+    const contractAddress = "0x7a67236aaDF8BbE32005f8F24ec33DB35eee5693"; // Airdrop contract
+    const contractABI = [
+      {
+        "inputs": [],
+        "name": "claimAirdrop",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "isAirdropActive",
+        "outputs": [{"internalType": "bool", "name": "", "type": "bool"}],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "timeLeft",
+        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ];
+
+    let web3;
+    let account;
+    let contract;
+
+    document.getElementById("connectWallet").onclick = async () => {
+      if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        await ethereum.request({ method: "eth_requestAccounts" });
+        const accounts = await web3.eth.getAccounts();
+        account = accounts[0];
+        document.getElementById("status").innerText = `Connected: ${account}`;
+
+        contract = new web3.eth.Contract(contractABI, contractAddress);
+
+        const isActive = await contract.methods.isAirdropActive().call();
+        if (!isActive) {
+          document.getElementById("status").innerText += "\nAirdrop is not active or has ended.";
+          return;
+        }
+
+        document.getElementById("claimAirdrop").disabled = false;
+      } else {
+        alert("Please install MetaMask!");
+      }
+    };
+
+    document.getElementById("claimAirdrop").onclick = async () => {
+      document.getElementById("status").innerText = "Processing claim...";
+      try {
+        await contract.methods.claimAirdrop().send({ from: account });
+        document.getElementById("status").innerText = "✅ Airdrop claimed successfully!";
+      } catch (error) {
+        console.error(error);
+        document.getElementById("status").innerText = `❌ Error: ${error.message}`;
+      }
+    };
+  </script></body>
+</html>
