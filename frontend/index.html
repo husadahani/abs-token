@@ -1,5 +1,30 @@
+
+
+// index.html
+
+/*
 <!DOCTYPE html>
-<html>
-<head><title>ABS Token</title></head>
-<body><h1>Welcome to ABS Token</h1></body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ABS Reward Claim</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers/dist/ethers.min.js"></script>
+  <script defer src="app.js"></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+    button { padding: 10px 20px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Claim Your ABS Rewards</h1>
+  <p id="walletAddress">Not connected</p>
+  <button onclick="connectWallet()">Connect Wallet</button>
+
+  <h2>Reward Info</h2>
+  <p>Reward Available: <span id="rewardAmount">-</span></p>
+  <p>Time Until Next Claim: <span id="nextClaim">-</span></p>
+
+  <button id="claimButton" onclick="claimReward()" disabled>Claim Reward</button>
+</body>
 </html>
+*/
