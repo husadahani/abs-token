@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ANT Coin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/4.3.0/web3.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(to bottom, #1a202c, #2d3748);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(to right, #4f46e5, #7c3aed);
+            transition: transform 0.2s;
+        }
+        .btn-primary:hover {
+            transform: scale(1.05);
+        }
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="text-white">
+    <div class="container mx-auto p-6">
+        <h1 class="text-4xl font-bold text-center mb-8">ANT Coin Dashboard</h1>
+        <div id="walletStatus" class="text-center mb-6">
+            <button id="connectWallet" class="btn-primary text-white font-semibold py-2 px-4 rounded-lg">Connect Wallet</button>
+            <p id="walletAddress" class="mt-2"></p>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="text-white text-lg">Processing Transaction<span class="loading"></span></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Minting -->
+            <div class="card p-6 rounded-lg">
+                <h2 class="text-2xl font-semibold mb-4">Mint Tokens</h2>
+                <input id="mintAmount" type="number" placeholder="Amount to mint" class="w-full p-2 mb-4 bg-gray-800 rounded text-white">
+                <select id="mintReason" class="w-full p-2 mb-4 bg-gray-800 rounded text-white">
+                    <option value="rewardspool">Reward Pool</option>
+                    <option value="stakingpool">Staking Pool</option>
+                    <option value="emergency">Emergency</option>
+                </select>
+                <button id="mintButton" class="btn-primary w-full py-2 rounded-lg">Mint</button>
+            </div>
+
+            <!-- Staking -->
+            <div class="card p-6 rounded-lg">
+                <h2 class="text-2xl font-semibold mb-4">Stake Tokens</h2>
+                <input id="stakeAmount" type="number" placeholder="Amount to stake" class="w-full p-2 mb-4 bg-gray-800 rounded text-white">
+                <button id="stakeButton" class="btn-primary w-full py-2 rounded-lg">Stake</button>
+            </div>
+
+            <!-- Unstaking -->
+            <div class="card p-6 rounded-lg">
+                <h2 class="text-2xl font-semibold mb-4">Unstake Tokens</h2>
+                <input id="unstakeAmount" type="number" placeholder="Amount to unstake" class="w-full p-2 mb-4 bg-gray-800 rounded text-white">
+                <button id="unstakeButton" class="btn-primary w-full py-2 rounded-lg">Unstake</button>
+            </div>
+
+            <!-- Add LP -->
+            <div class="card p-6 rounded-lg">
+                <h2 class="text-2xl font-semibold mb-4">Add Liquidity</h2>
+                <input id="addLPAmount" type="number" placeholder="Amount to lock" class="w-full p-2 mb-4 bg-gray-800 rounded text-white">
+                <button id="addLPButton" class="btn-primary w-full py-2 rounded-lg">Add LP</button>
+            </div>
+
+            <!-- Unlock LP -->
+            <div class="card p-6 rounded-lg">
+                <h2 class="text-2xl font-semibold mb-4">Unlock Liquidity</h2>
+                <input id="unlockLPAmount" type="number" placeholder="Amount to unlock" class="w-full p-2 mb-4 bg-gray-800 rounded text-white">
+                <button id="unlockLPButton" class="btn-primary w-full py-2 rounded-lg">Unlock LP</button>
+            </div>
+
+            <!-- Claim Staking Reward -->
+            <div class="card p-6 rounded-lg">
+                <h2 class="text-2xl font-semibold mb-4">Claim Staking Reward</h2>
+                <button id="claimStakingRewardButton" class="btn-primary w-full py-2 rounded-lg">Claim Reward</button>
+            </div>
+
+            <!-- Claim LP Reward -->
+            <div class="card p-6 rounded-lg">
+                <h2 class="text-2xl font-semibold mb-4">Claim LP Reward</h2>
+                <button id="claimLPRewardButton" class="btn-primary w-full py-2 rounded-lg">Claim Reward</button>
+            </div>
+
+            <!-- Claim Airdrop -->
+            <div class="card p-6 rounded-lg">
+                <h2 class="text-2xl font-semibold mb-4">Claim Airdrop</h2>
+                <button id="claimAirdropButton" class="btn-primary w-full py-2 rounded-lg">Claim Airdrop</button>
+            </div>
+
+            <!-- ICO Purchase -->
+            <div class="card p-6 rounded-lg">
+                <h2 class="text-2xl font-semibold mb-4">ICO Purchase</h2>
+                <input id="icoAmount" type="number" placeholder="USDT amount (max 50)" class="w-full p-2 mb-4 bg-gray-800 rounded text-white">
+                <button id="buyICOButton" class="btn-primary w-full py-2 rounded-lg">Buy ICO</button>
+            </div>
+
+            <!-- Claim Purchase Reward -->
+            <div class="card p-6 rounded-lg">
+                <h2 class="text-2xl font-semibold mb-4">Claim Purchase Reward</h2>
+                <button id="claimPurchaseRewardButton" class="btn-primary w-full py-2 rounded-lg">Claim Reward</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
