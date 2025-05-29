@@ -1,69 +1,61 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ABSToken is ERC20, Ownable {
-    uint256 public constant MAX_SUPPLY = 420_000_000_000_000 * 10**18; // 420 Triliun ABS
-    bool public supplyLocked = false;
-    address public rewardEngine;
-    address public unlockController;
-    address public airdrop;
-    address public ico;
+contract AmericanBreakfast is ERC20Burnable, Ownable {
+    uint256 public constant MAX_SUPPLY = 420_000_000_000_000 * 10**18;
+    uint256 public constant INITIAL_SUPPLY = 980_000_000_000 * 10**18;
+
+    address public immutable REWARD_POOL;
+    address public immutable AIRDROP_DISTRIBUTOR;
+    address public immutable ICO_WALLET;
+    address public immutable MARKETING_WALLET;
+    address public immutable LIQUIDITY_WALLET;
+
+    event InitialDistribution(
+        address indexed recipient,
+        uint256 amount,
+        string purpose
+    );
 
     constructor(
-        address _rewardEngine,
-        address _unlockController,
-        address _airdrop,
-        address _ico
-    ) ERC20("American Breakfast Token", "ABS") {
-        rewardEngine = _rewardEngine;
-        unlockController = _unlockController;
-        airdrop = _airdrop;
-        ico = _ico;
+        address _rewardPool,
+        address _airdropDistributor,
+        address _icoWallet,
+        address _marketingWallet
+    ) ERC20("American Breakfast", "ABS") {
+        require(_rewardPool != address(0), "Invalid reward pool");
+        require(_airdropDistributor != address(0), "Invalid airdrop");
+        require(_icoWallet != address(0), "Invalid ICO wallet");
+        require(_marketingWallet != address(0), "Invalid marketing wallet");
 
-        _transferOwnership(msg.sender);
-    }
+        REWARD_POOL = _rewardPool;
+        AIRDROP_DISTRIBUTOR = _airdropDistributor;
+        ICO_WALLET = _icoWallet;
+        MARKETING_WALLET = _marketingWallet;
+        LIQUIDITY_WALLET = msg.sender;
 
-    modifier onlyControllers() {
-        require(
-            msg.sender == rewardEngine || 
-            msg.sender == unlockController || 
-            msg.sender == airdrop || 
-            msg.sender == ico || 
-            msg.sender == owner(),
-            "Not authorized"
-        );
-        _;
-    }
+        uint256 toRewardPool = (INITIAL_SUPPLY * 35) / 100; // 35%
+        uint256 toAirdrop = (INITIAL_SUPPLY * 10) / 100;     // 10%
+        uint256 toICO = (INITIAL_SUPPLY * 25) / 100;         // 25%
+        uint256 toMarketing = (INITIAL_SUPPLY * 10) / 100;   // 10%
+        uint256 toOwner = INITIAL_SUPPLY - (toRewardPool + toAirdrop + toICO + toMarketing);
 
-    function mint(address to, uint256 amount) external onlyControllers {
-        require(totalSupply() + amount <= MAX_SUPPLY, "Max supply exceeded");
-        _mint(to, amount);
-    }
+        _mint(REWARD_POOL, toRewardPool);
+        emit InitialDistribution(REWARD_POOL, toRewardPool, "Reward Pool");
 
-    function burn(uint256 amount) external {
-        _burn(msg.sender, amount);
-    }
+        _mint(AIRDROP_DISTRIBUTOR, toAirdrop);
+        emit InitialDistribution(AIRDROP_DISTRIBUTOR, toAirdrop, "Airdrop Distributor");
 
-    function setRewardEngine(address _engine) external onlyOwner {
-        rewardEngine = _engine;
-    }
+        _mint(ICO_WALLET, toICO);
+        emit InitialDistribution(ICO_WALLET, toICO, "ICO Wallet");
 
-    function setUnlockController(address _controller) external onlyOwner {
-        unlockController = _controller;
-    }
+        _mint(MARKETING_WALLET, toMarketing);
+        emit InitialDistribution(MARKETING_WALLET, toMarketing, "Marketing Wallet");
 
-    function setAirdrop(address _airdrop) external onlyOwner {
-        airdrop = _airdrop;
-    }
-
-    function setICO(address _ico) external onlyOwner {
-        ico = _ico;
-    }
-
-    function circulatingSupply() public view returns (uint256) {
-        return totalSupply() - balanceOf(0x000000000000000000000000000000000000dEaD);
+        _mint(LIQUIDITY_WALLET, toOwner);
+        emit InitialDistribution(LIQUIDITY_WALLET, toOwner, "Liquidity / Owner");
     }
 }
